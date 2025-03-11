@@ -1,0 +1,7 @@
+numpy
+pandas
+opencv-python
+pillow 
+mysql-connector-python
+pysqlite3
+SQLAlchemy

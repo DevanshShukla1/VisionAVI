@@ -1,0 +1,40 @@
+from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import JSONResponse
+import os
+from scenario_temp import scenario_temp
+
+app = FastAPI()
+
+@app.get("/")
+def root():
+    return {"message": "FastAPI Video Prediction Service is Running"}
+
+@app.post("/predict/")
+async def predict(file: UploadFile = File(...)):
+    """
+    Endpoint to handle video file uploads and return predictions.
+    """
+    try:
+        # Save the uploaded file temporarily
+        file_path = f"temp_{file.filename}"
+        with open(file_path, "wb") as buffer:
+            buffer.write(file.file.read())
+
+        # Initialize the scenario_temp object with the uploaded file
+        scenario = scenario_temp(file_path)
+
+        # Process the file and get predictions
+        predictions = scenario.process_frames()
+
+        # Clean up the temporary file
+        os.remove(file_path)
+
+        return JSONResponse(content={"message": "Processing complete.", "predictions": predictions})
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=8000)
